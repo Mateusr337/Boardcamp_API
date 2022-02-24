@@ -21,7 +21,7 @@ export async function postCategories(req, res) {
 
     await connection.query(`
         INSERT INTO categories (name) VALUES ($1);
-    `, [name]
-    );
+    `, [name]);
+
     res.sendStatus(201);
 }
