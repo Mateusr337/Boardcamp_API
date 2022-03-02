@@ -22,7 +22,7 @@ export async function getRentals(req, res) {
         }
 
         const resultGames = await connection.query(`SELECT * FROM games`);
-        const resultCustomers = await connection.query(`SELECT * FROM games`);
+        const resultCustomers = await connection.query(`SELECT * FROM customers`);
 
         rentals = rentals.rows.map(rental => ({
             ...rental,
@@ -98,7 +98,7 @@ export async function returnGame(req, res) {
         res.sendStatus(200);
 
     } catch (error) {
-        console.log(error);
+        console.log(error.message);
         res.sendStatus(500);
     }
 }
