@@ -21,7 +21,10 @@ export async function getRentals(req, res) {
             rentals = await connection.query(`SELECT * FROM rentals`);
         }
 
-        const resultGames = await connection.query(`SELECT games.id, games.name, games."categoryId", games.name AS "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id`);
+        const resultGames = await connection.query(`
+            SELECT games.id, games.name, games."categoryId", games.name AS "categoryName" FROM games 
+            JOIN categories ON games."categoryId" = categories.id
+        `);
         const resultCustomers = await connection.query(`SELECT id, name FROM customers`);
 
         rentals = rentals.rows.map(rental => ({
@@ -132,6 +135,29 @@ export async function deleteRentals(req, res) {
         `, [id]);
 
         res.sendStatus(200);
+
+    } catch (error) {
+        console.log(error.message);
+        res.sendStatus(500);
+    }
+}
+
+export async function getMetrics(req, res) {
+    try {
+        const { rows: rentals } = await connection.query(`
+            SELECT SUM("originalPrice") AS "originalPriceSum", 
+                SUM("delayFee") AS "delayFeeSum",
+                COUNT(id) AS rentals
+                FROM rentals;
+        `);
+
+        const data = rentals.map(rental => ({
+            revenue: parseInt(rental.originalPriceSum + rental.delayFeeSum),
+            rentals: parseInt(rental.rentals),
+            average: Math.round((rental.originalPriceSum + rental.delayFeeSum) / rental.rentals)
+        }));
+
+        res.send(data[0]);
 
     } catch (error) {
         console.log(error.message);
