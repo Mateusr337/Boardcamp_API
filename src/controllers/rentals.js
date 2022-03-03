@@ -21,8 +21,8 @@ export async function getRentals(req, res) {
             rentals = await connection.query(`SELECT * FROM rentals`);
         }
 
-        const resultGames = await connection.query(`SELECT * FROM games`);
-        const resultCustomers = await connection.query(`SELECT * FROM customers`);
+        const resultGames = await connection.query(`SELECT games.id, games.name, games."categoryId", games.name AS "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id`);
+        const resultCustomers = await connection.query(`SELECT id, name FROM customers`);
 
         rentals = rentals.rows.map(rental => ({
             ...rental,
