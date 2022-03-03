@@ -4,7 +4,9 @@ export async function getCustomers(req, res) {
 
     try {
         const customers = await connection.query(`
-            SELECT * FROM customers;
+            SELECT customers.*, COUNT(*) AS "rentalsCount" FROM customers
+            JOIN rentals ON customers.id = rentals."customerId"
+            GROUP BY customers.id
         `);
 
         res.send(customers.rows);
