@@ -25,7 +25,8 @@ export async function getRentals(req, res) {
             SELECT 
                 games.id, 
                 games."categoryId", 
-                games.name AS "categoryName" 
+                games.name AS "name",
+                categories.name AS "categoryName"
                 FROM games 
                 JOIN categories ON games."categoryId" = categories.id
         `);
