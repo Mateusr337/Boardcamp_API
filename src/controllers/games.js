@@ -20,20 +20,25 @@ export async function postGame(req, res) {
 
 export async function getGames(req, res) {
     try {
-        const name = `%${req.query.name}%`
         let games;
+        let { name } = req.query;
 
         if (name) {
+            name = `%${req.query.name}%`
             games = await connection.query(`
-                SELECT games.*, categories.name AS "categoryName" FROM games
-                JOIN categories ON games."categoryId" = categories.id
-                WHERE  games.name LIKE $1
+                SELECT games.*, categories.name AS "categoryName", COUNT(rentals.id) AS "rentalsCount" FROM games
+                    JOIN categories ON games."categoryId" = categories.id
+                    JOIN rentals ON games.id = rentals."gameId"
+                    WHERE  games.name LIKE $1
+                    GROUP BY games.id, categories.id
             `, [name]);
 
         } else {
             games = await connection.query(`
-                SELECT games.*, categories.name AS "categoryName" FROM games
+                SELECT games.*, categories.name AS "categoryName", COUNT(rentals.id) AS "rentalsCount" FROM games
                 JOIN categories ON games."categoryId" = categories.id
+                JOIN rentals ON games.id = rentals."gameId"
+                GROUP BY games.id, categories.id
             `);
         }
 
