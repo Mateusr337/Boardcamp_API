@@ -22,8 +22,12 @@ export async function getRentals(req, res) {
         }
 
         const resultGames = await connection.query(`
-            SELECT games.id, games.name, games."categoryId", games.name AS "categoryName" FROM games 
-            JOIN categories ON games."categoryId" = categories.id
+            SELECT 
+                games.id, 
+                games."categoryId", 
+                games.name AS "categoryName" 
+                FROM games 
+                JOIN categories ON games."categoryId" = categories.id
         `);
         const resultCustomers = await connection.query(`SELECT id, name FROM customers`);
 
@@ -144,12 +148,45 @@ export async function deleteRentals(req, res) {
 
 export async function getMetrics(req, res) {
     try {
-        const { rows: rentals } = await connection.query(`
-            SELECT SUM("originalPrice") AS "originalPriceSum", 
-                SUM("delayFee") AS "delayFeeSum",
-                COUNT(id) AS rentals
-                FROM rentals;
-        `);
+        let rentals;
+        const { startDate, endDate } = req.query;
+
+        if (startDate && endDate) {
+            rentals = await connection.query(`
+                SELECT SUM("originalPrice") AS "originalPriceSum", 
+                    SUM("delayFee") AS "delayFeeSum",
+                    COUNT(id) AS rentals
+                    FROM rentals
+                    WHERE "rentDate" >= $1 AND "rentDate" <= $2
+            `, [startDate, endDate]);
+
+        } else if (startDate) {
+            rentals = await connection.query(`
+                SELECT SUM("originalPrice") AS "originalPriceSum", 
+                    SUM("delayFee") AS "delayFeeSum",
+                    COUNT(id) AS rentals
+                    FROM rentals
+                    WHERE $1 <= "rentDate"
+                `, [startDate]);
+
+        } else if (endDate) {
+            rentals = await connection.query(`
+                SELECT SUM("originalPrice") AS "originalPriceSum", 
+                    SUM("delayFee") AS "delayFeeSum",
+                    COUNT(id) AS rentals
+                    FROM rentals
+                    WHERE $1 >= "rentDate"
+                `, [endDate]);
+
+        } else {
+            rentals = await connection.query(`
+                SELECT SUM("originalPrice") AS "originalPriceSum", 
+                    SUM("delayFee") AS "delayFeeSum",
+                    COUNT(id) AS rentals
+                    FROM rentals
+            `);
+        }
+        rentals = rentals.rows;
 
         const data = rentals.map(rental => ({
             revenue: parseInt(rental.originalPriceSum + rental.delayFeeSum),
