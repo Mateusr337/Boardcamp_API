@@ -19,27 +19,33 @@ export async function postGame(req, res) {
 }
 
 export async function getGames(req, res) {
-    let sendGames = [];
-
     try {
-        const games = (await connection.query(`
-        SELECT * FROM games;
-    `)).rows;
+        let games;
+        let { name } = req.query;
 
-        for (const game of games) {
-            const { categoryId } = game;
+        if (name) {
+            name = `%${req.query.name}%`
+            games = await connection.query(`
+                SELECT games.*, categories.name AS "categoryName", COUNT(rentals.id) AS "rentalsCount" FROM games
+                    JOIN categories ON games."categoryId" = categories.id
+                    JOIN rentals ON games.id = rentals."gameId"
+                    WHERE  games.name LIKE $1
+                    GROUP BY games.id, categories.id
+            `, [name]);
 
-            let categoryName = await connection.query(`
-            SELECT name FROM categories WHERE id = $1;
-        `, [categoryId])
-
-            categoryName = categoryName.rows[0].name;
-            sendGames.push({ ...game, categoryName });
+        } else {
+            games = await connection.query(`
+                SELECT games.*, categories.name AS "categoryName", COUNT(rentals.id) AS "rentalsCount" FROM games
+                JOIN categories ON games."categoryId" = categories.id
+                JOIN rentals ON games.id = rentals."gameId"
+                GROUP BY games.id, categories.id
+            `);
         }
+
+        res.send(games.rows);
+
     } catch (error) {
         console.log(error.message);
         return res.sendStatus(500);
     }
-
-    res.send(sendGames);
 }
