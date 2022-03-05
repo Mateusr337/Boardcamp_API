@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import SqlString from 'sqlstring';
 
 export async function getRentals(req, res) {
-    const { customerId, gameId } = req.query;
+    const { customerId, gameId, status, desc } = req.query;
 
     const orderByFilters = {
         id: 1,
@@ -11,8 +11,15 @@ export async function getRentals(req, res) {
     }
 
     let filter = '';
-    req.query.gameId && (filter = `WHERE "gameId" = ${SqlString.escape(gameId)}`);
-    req.query.customerId && (filter = `WHERE "customerId" = ${SqlString.escape(customerId)}`);
+    gameId && (filter = `WHERE "gameId" = ${SqlString.escape(gameId)}`);
+    customerId && (filter = `WHERE "customerId" = ${SqlString.escape(customerId)}`);
+
+    if (status) {
+        if (status === 'open' || status === 'closed') {
+            filter.includes('WHERE') ? filter = filter + ' AND' : filter = 'WHERE';
+            status === 'open' ? filter = filter + ` "returnDate" is null` : filter = filter + ` "returnDate" is not null`;
+        }
+    }
 
     let offset = '';
     req.query.offset && (offset = `OFFSET ${SqlString.escape(req.query.offset)}`);
@@ -22,9 +29,11 @@ export async function getRentals(req, res) {
 
     let order = '';
     req.query.order && (order = `ORDER BY ${SqlString.escape(orderByFilters[req.query.order])}`);
-    (req.query.desc === 'true' && req.query.order) && (order = `
+    (desc === 'true' && req.query.order) && (order = `
         ORDER BY ${SqlString.escape(orderByFilters[req.query.order])} DESC
     `);
+
+    console.log(filter);
 
     try {
         let rentals = await connection.query(`
