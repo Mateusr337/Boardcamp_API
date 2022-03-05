@@ -2,11 +2,19 @@ import connection from '../db.js';
 
 export async function getCustomers(req, res) {
 
+    let offset = '';
+    req.query.offset && (offset = `OFFSET ${req.query.offset}`);
+
+    let limit = '';
+    req.query.limit && (limit = `LIMIT ${req.query.limit}`);
+
     try {
         const customers = await connection.query(`
             SELECT customers.*, COUNT(*) AS "rentalsCount" FROM customers
             JOIN rentals ON customers.id = rentals."customerId"
             GROUP BY customers.id
+            ${limit}
+            ${offset}
         `);
 
         res.send(customers.rows);
