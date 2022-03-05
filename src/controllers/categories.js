@@ -8,7 +8,6 @@ export async function getCategories(req, res) {
 
     let limit = '';
     req.query.limit && (limit = `LIMIT ${req.query.limit}`);
-    console.log(req.query.limit);
 
     const categories = await connection.query(`
         SELECT * FROM categories

@@ -20,29 +20,26 @@ export async function postGame(req, res) {
 
 export async function getGames(req, res) {
     try {
-        let games;
-        let { name } = req.query;
+        let offset = '';
+        req.query.offset && (offset = `OFFSET ${req.query.offset}`);
 
-        if (name) {
-            name = `%${req.query.name}%`
-            games = await connection.query(`
-                SELECT games.*, categories.name AS "categoryName", COUNT(rentals.id) AS "rentalsCount" FROM games
-                    JOIN categories ON games."categoryId" = categories.id
-                    JOIN rentals ON games.id = rentals."gameId"
-                    WHERE  games.name LIKE $1
-                    GROUP BY games.id, categories.id
-            `, [name]);
+        let limit = '';
+        req.query.limit && (limit = `LIMIT ${req.query.limit}`);
 
-        } else {
-            games = await connection.query(`
+        let name = '';
+        req.query.name && (name = `WHERE  games.name LIKE '%${req.query.name}%'`);
+
+        const { rows: games } = await connection.query(`
                 SELECT games.*, categories.name AS "categoryName", COUNT(rentals.id) AS "rentalsCount" FROM games
                 JOIN categories ON games."categoryId" = categories.id
                 JOIN rentals ON games.id = rentals."gameId"
+                ${name}
                 GROUP BY games.id, categories.id
+                ${offset}
+                ${limit}
             `);
-        }
 
-        res.send(games.rows);
+        res.send(games);
 
     } catch (error) {
         console.log(error.message);
