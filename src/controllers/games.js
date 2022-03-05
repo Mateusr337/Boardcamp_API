@@ -1,4 +1,5 @@
 import connection from '../db.js';
+import SqlString from 'sqlstring';
 
 export async function postGame(req, res) {
     const { name, image, stockTotal, categoryId, pricePerDay } = req.body;
@@ -21,13 +22,13 @@ export async function postGame(req, res) {
 export async function getGames(req, res) {
     try {
         let offset = '';
-        req.query.offset && (offset = `OFFSET ${req.query.offset}`);
+        req.query.offset && (offset = `OFFSET ${SqlString.escape(req.query.offset)}`);
 
         let limit = '';
-        req.query.limit && (limit = `LIMIT ${req.query.limit}`);
+        req.query.limit && (limit = `LIMIT ${SqlString.escape(req.query.limit)}`);
 
         let name = '';
-        req.query.name && (name = `WHERE  games.name LIKE '%${req.query.name}%'`);
+        req.query.name && (name = `WHERE  games.name LIKE '%${SqlString.escape(req.query.name)}%'`);
 
         const { rows: games } = await connection.query(`
                 SELECT games.*, categories.name AS "categoryName", COUNT(rentals.id) AS "rentalsCount" FROM games

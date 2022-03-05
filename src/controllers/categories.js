@@ -1,13 +1,13 @@
 import connection from "../db.js";
-
+import SqlString from 'sqlstring';
 
 export async function getCategories(req, res) {
 
     let offset = '';
-    req.query.offset && (offset = `OFFSET ${req.query.offset}`);
+    req.query.offset && (offset = `OFFSET ${SqlString.escape(req.query.offset)}`);
 
     let limit = '';
-    req.query.limit && (limit = `LIMIT ${req.query.limit}`);
+    req.query.limit && (limit = `LIMIT ${SqlString.escape(req.query.limit)}`);
 
     const categories = await connection.query(`
         SELECT * FROM categories

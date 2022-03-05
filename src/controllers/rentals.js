@@ -1,18 +1,19 @@
 import connection from '../db.js';
 import dayjs from 'dayjs';
+import SqlString from 'sqlstring';
 
 export async function getRentals(req, res) {
     const { customerId, gameId } = req.query;
 
     let filter = '';
-    req.query.gameId && (filter = `WHERE "gameId" = ${gameId}`);
-    req.query.customerId && (filter = `WHERE "customerId" = ${customerId}`);
+    req.query.gameId && (filter = `WHERE "gameId" = ${SqlString.escape(gameId)}`);
+    req.query.customerId && (filter = `WHERE "customerId" = ${SqlString.escape(customerId)}`);
 
     let offset = '';
-    req.query.offset && (offset = `OFFSET ${req.query.offset}`);
+    req.query.offset && (offset = `OFFSET ${SqlString.escape(req.query.offset)}`);
 
     let limit = '';
-    req.query.limit && (limit = `LIMIT ${req.query.limit}`);
+    req.query.limit && (limit = `LIMIT ${SqlString.escape(req.query.limit)}`);
 
     try {
         let rentals = await connection.query(`

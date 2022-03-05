@@ -1,12 +1,13 @@
 import connection from '../db.js';
+import SqlString from 'sqlstring';
 
 export async function getCustomers(req, res) {
 
     let offset = '';
-    req.query.offset && (offset = `OFFSET ${req.query.offset}`);
+    req.query.offset && (offset = `OFFSET ${SqlString.escape(req.query.offset)}`);
 
     let limit = '';
-    req.query.limit && (limit = `LIMIT ${req.query.limit}`);
+    req.query.limit && (limit = `LIMIT ${SqlString.escape(req.query.limit)}`);
 
     try {
         const customers = await connection.query(`
