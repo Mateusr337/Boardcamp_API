@@ -3,11 +3,26 @@ import SqlString from 'sqlstring';
 
 export async function getCustomers(req, res) {
 
+    const orderByFilters = {
+        id: 1,
+        name: 2,
+        phone: 3,
+        cpf: 4,
+        birthday: 5,
+        rentalsCount: 6
+    }
+
     let offset = '';
     req.query.offset && (offset = `OFFSET ${SqlString.escape(req.query.offset)}`);
 
     let limit = '';
     req.query.limit && (limit = `LIMIT ${SqlString.escape(req.query.limit)}`);
+
+    let order = '';
+    req.query.order && (order = `ORDER BY ${SqlString.escape(orderByFilters[req.query.order])}`);
+    (req.query.desc === 'true' && req.query.order) && (order = `
+        ORDER BY ${SqlString.escape(orderByFilters[req.query.order])} DESC
+    `);
 
     try {
         const customers = await connection.query(`
@@ -16,6 +31,7 @@ export async function getCustomers(req, res) {
             GROUP BY customers.id
             ${limit}
             ${offset}
+            ${order}
         `);
 
         res.send(customers.rows);
@@ -72,13 +88,14 @@ export async function updateCustomers(req, res) {
     const { id } = req.params;
     const { name, cpf, phone, birthday } = req.body;
 
-    const findedCustomers = await connection.query(`
-        SELECT * FROM customers WHERE cpf = $1 AND id <> $2;
-    `, [cpf, id]);
-
-    if (findedCustomers.rows.length > 0) return res.sendStatus(409);
-
     try {
+
+        const findedCustomers = await connection.query(`
+            SELECT * FROM customers WHERE cpf = $1 AND id <> $2;
+        `, [cpf, id]);
+
+        if (findedCustomers.rows.length > 0) return res.sendStatus(409);
+
         await connection.query(`
             UPDATE customers
                 SET name = $1, cpf = $2, phone = $3, birthday = $4 

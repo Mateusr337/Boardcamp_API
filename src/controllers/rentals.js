@@ -5,6 +5,11 @@ import SqlString from 'sqlstring';
 export async function getRentals(req, res) {
     const { customerId, gameId } = req.query;
 
+    const orderByFilters = {
+        id: 1,
+        name: 2,
+    }
+
     let filter = '';
     req.query.gameId && (filter = `WHERE "gameId" = ${SqlString.escape(gameId)}`);
     req.query.customerId && (filter = `WHERE "customerId" = ${SqlString.escape(customerId)}`);
@@ -15,12 +20,19 @@ export async function getRentals(req, res) {
     let limit = '';
     req.query.limit && (limit = `LIMIT ${SqlString.escape(req.query.limit)}`);
 
+    let order = '';
+    req.query.order && (order = `ORDER BY ${SqlString.escape(orderByFilters[req.query.order])}`);
+    (req.query.desc === 'true' && req.query.order) && (order = `
+        ORDER BY ${SqlString.escape(orderByFilters[req.query.order])} DESC
+    `);
+
     try {
         let rentals = await connection.query(`
             SELECT * FROM rentals
             ${filter}
             ${offset}
             ${limit}
+            ${order}
         `);
 
         const resultGames = await connection.query(`
