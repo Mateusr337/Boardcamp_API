@@ -4,22 +4,23 @@ import dayjs from 'dayjs';
 export async function getRentals(req, res) {
     const { customerId, gameId } = req.query;
 
+    let filter = '';
+    req.query.gameId && (filter = `WHERE "gameId" = ${gameId}`);
+    req.query.customerId && (filter = `WHERE "customerId" = ${customerId}`);
+
+    let offset = '';
+    req.query.offset && (offset = `OFFSET ${req.query.offset}`);
+
+    let limit = '';
+    req.query.limit && (limit = `LIMIT ${req.query.limit}`);
+
     try {
-        let rentals;
-
-        if (customerId) {
-            rentals = await connection.query(`
-                SELECT * FROM rentals WHERE id = $1;
-            `, [customerId]);
-
-        } else if (gameId) {
-            rentals = await connection.query(`
-                SELECT * FROM rentals WHERE id = $1;
-            `, [gameId]);
-
-        } else {
-            rentals = await connection.query(`SELECT * FROM rentals`);
-        }
+        let rentals = await connection.query(`
+            SELECT * FROM rentals
+            ${filter}
+            ${offset}
+            ${limit}
+        `);
 
         const resultGames = await connection.query(`
             SELECT 
