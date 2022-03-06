@@ -3,11 +3,17 @@ import dayjs from 'dayjs';
 import SqlString from 'sqlstring';
 
 export async function getRentals(req, res) {
-    const { customerId, gameId, status, desc } = req.query;
+    const { customerId, gameId, status, desc, startDate, endDate } = req.query;
 
     const orderByFilters = {
         id: 1,
-        name: 2,
+        customerId: 2,
+        gameId: 3,
+        rentDate: 4,
+        daysRented: 5,
+        returnDate: 6,
+        originalPrice: 7,
+        delayFee: 8,
     }
 
     let filter = '';
@@ -18,6 +24,17 @@ export async function getRentals(req, res) {
         if (status === 'open' || status === 'closed') {
             filter.includes('WHERE') ? filter = filter + ' AND' : filter = 'WHERE';
             status === 'open' ? filter = filter + ` "returnDate" is null` : filter = filter + ` "returnDate" is not null`;
+        }
+    }
+
+    if (startDate || endDate) {
+        if (startDate) {
+            filter.includes('WHERE') ? filter = filter + ' AND' : filter = 'WHERE';
+            filter = filter + ` "rentDate" >= ${SqlString.escape(startDate)}`;
+        }
+        if (endDate) {
+            filter.includes('WHERE') ? filter = filter + ' AND' : filter = 'WHERE';
+            filter = filter + ` "rentDate" <= ${SqlString.escape(endDate)}`;
         }
     }
 
@@ -32,8 +49,6 @@ export async function getRentals(req, res) {
     (desc === 'true' && req.query.order) && (order = `
         ORDER BY ${SqlString.escape(orderByFilters[req.query.order])} DESC
     `);
-
-    console.log(filter);
 
     try {
         let rentals = await connection.query(`
@@ -50,7 +65,7 @@ export async function getRentals(req, res) {
                 games."categoryId", 
                 games.name AS "name",
                 categories.name AS "categoryName"
-                FROM games 
+            FROM games 
                 JOIN categories ON games."categoryId" = categories.id
         `);
         const resultCustomers = await connection.query(`SELECT id, name FROM customers`);
@@ -174,42 +189,24 @@ export async function getMetrics(req, res) {
     try {
         let rentals;
         const { startDate, endDate } = req.query;
+        let filter = '';
 
         if (startDate && endDate) {
-            rentals = await connection.query(`
-                SELECT SUM("originalPrice") AS "originalPriceSum", 
-                    SUM("delayFee") AS "delayFeeSum",
-                    COUNT(id) AS rentals
-                    FROM rentals
-                    WHERE "rentDate" >= $1 AND "rentDate" <= $2
-            `, [startDate, endDate]);
-
+            filter = `WHERE "rentDate" >= ${SqlString.escape(startDate)} AND "rentDate" <= ${SqlString.escape(endDate)}`
         } else if (startDate) {
-            rentals = await connection.query(`
-                SELECT SUM("originalPrice") AS "originalPriceSum", 
-                    SUM("delayFee") AS "delayFeeSum",
-                    COUNT(id) AS rentals
-                    FROM rentals
-                    WHERE $1 <= "rentDate"
-                `, [startDate]);
-
+            filter = `WHERE ${SqlString.escape(startDate)} <= "rentDate"`
         } else if (endDate) {
-            rentals = await connection.query(`
-                SELECT SUM("originalPrice") AS "originalPriceSum", 
-                    SUM("delayFee") AS "delayFeeSum",
-                    COUNT(id) AS rentals
-                    FROM rentals
-                    WHERE $1 >= "rentDate"
-                `, [endDate]);
-
-        } else {
-            rentals = await connection.query(`
-                SELECT SUM("originalPrice") AS "originalPriceSum", 
-                    SUM("delayFee") AS "delayFeeSum",
-                    COUNT(id) AS rentals
-                    FROM rentals
-            `);
+            filter = `WHERE ${SqlString.escape(endDate)} >= "rentDate"`
         }
+
+        rentals = await connection.query(`
+            SELECT SUM("originalPrice") AS "originalPriceSum", 
+                SUM("delayFee") AS "delayFeeSum",
+                COUNT(id) AS rentals
+                FROM rentals
+                ${filter}
+        `);
+
         rentals = rentals.rows;
 
         const data = rentals.map(rental => ({
