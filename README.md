@@ -14,11 +14,11 @@ The backend has extra functionality than the website:
   ## Technologies 
 
 <div>
-  <img style='margin: 5px;' src="https://img.shields.io/badge/Express%20-%2320232a.svg?&style=for-the-badge&color=363636&logo=Express&logoColor=1572B6"/>
-  <img style='margin: 5px;' src="https://img.shields.io/badge/SqlString%20-%2320232a.svg?&style=for-the-badge&color=363636&logo=SqlString&logoColor=1572B6"/>  
+  <img style='margin: 5px;' src="https://img.shields.io/badge/node js%20-%2320232a.svg?&style=for-the-badge&color=339933&logo=node.js&logoColor=ffffff"/>
+  <img style='margin: 5px;' src="https://img.shields.io/badge/Express%20-%2320232a.svg?&style=for-the-badge&color=000000&logo=Express&logoColor=ffffff"/>  
+  <img style='margin: 5px;' src="https://img.shields.io/badge/SqlString%20-%2320232a.svg?&style=for-the-badge&color=000000&logo=SqlString&logoColor=1572B6"/>  
   <img style='margin: 5px;' src="https://img.shields.io/badge/dayjs%20-%2320232a.svg?&style=for-the-badge&color=363636&logo=Days.js&logoColor=1572B6"/>  
-  <img style='margin: 5px;' src="https://img.shields.io/badge/dotenv%20-%2320232a.svg?&style=for-the-badge&color=363636&logo=Dotenv&logoColor=1572B6"/>  
-  <img style='margin: 5px;' src="https://img.shields.io/badge/postegres.SQL%20-%2320232a.svg?&style=for-the-badge&color=363636&logo=postgreSQL&logoColor=1572B6"/>  
+  <img style='margin: 5px;' src="https://img.shields.io/badge/PostgreSQL%20-%2320232a.svg?&style=for-the-badge&color=4169E1&logo=PostgreSQL&logoColor=ffffff"/>
 </div>
 
 ## How to run
